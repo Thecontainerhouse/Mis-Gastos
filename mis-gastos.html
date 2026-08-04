@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis Gastos">
+<meta name="theme-color" content="#FAFAFA">
+<title>Mis Gastos</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #F8FAFC;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #0F172A;
+    min-height: 100vh;
+    padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 16px; padding-bottom: 48px; }
+
+  header { padding: 8px 2px 4px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 2px; letter-spacing: -0.2px; }
+  .sub { font-size: 13px; color: #64748B; margin: 0; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+  .stat-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #64748B; margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 600; }
+
+  .card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 14px; font-weight: 600; margin: 0 0 12px; }
+
+  label.field-label { display:block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #64748B; margin: 14px 0 6px; }
+  label.field-label:first-of-type { margin-top: 0; }
+
+  input[type=number], input[type=text] {
+    width: 100%; padding: 11px 12px; font-size: 15px;
+    border: 1px solid #CBD5E1; border-radius: 8px; background: #F8FAFC; color: #0F172A;
+    -webkit-appearance: none; appearance: none;
+  }
+  input[type=number] { font-size: 26px; text-align: center; font-weight: 600; padding: 14px; }
+  input:focus { outline: none; border-color: #0F172A; background: #fff; }
+
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg button {
+    flex: 1 1 auto; min-width: 78px; padding: 10px 6px;
+    border: 1px solid #CBD5E1; border-radius: 8px; background: #fff; color: #334155;
+    font-size: 12.5px; font-weight: 500; cursor: pointer;
+  }
+  .seg button.active { background: #0F172A; color: #fff; border-color: #0F172A; }
+
+  .dup-warn {
+    margin-top: 10px; padding: 10px 12px; background: #FFFBEB;
+    border: 1px solid #FDE68A; border-radius: 8px; font-size: 12.5px; color: #92400E;
+  }
+
+  .photo-btn {
+    display:block; width:100%; padding: 12px; text-align:center;
+    background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: 8px;
+    font-size: 13px; color: #64748B; cursor: pointer;
+  }
+  .photo-preview { width:100%; max-height: 150px; object-fit: contain; border-radius: 8px; border: 1px solid #E2E8F0; margin-top: 8px; display:block; }
+
+  .save-btn {
+    width: 100%; padding: 14px; margin-top: 16px;
+    background: #0F172A; color: #fff; border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .save-btn:disabled { background: #CBD5E1; color: #94A3B8; }
+  .save-btn.done { background: #16A34A; }
+
+  .wa-banner { margin-top: 12px; padding: 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; display: none; }
+  .wa-banner.show { display: block; }
+  .wa-banner p { margin: 0 0 8px; font-size: 13px; color: #166534; }
+  .mini-btn { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff; color: #334155; cursor: pointer; }
+  .mini-btn.wa { background: #16A34A; color: #fff; border-color: #16A34A; }
+
+  .filters-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; }
+  select { font-size: 12px; padding: 6px 8px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff; color: #334155; }
+  .chip-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .chip { padding: 5px 11px; font-size: 12px; border-radius: 99px; border: 1px solid #E2E8F0; background: #fff; color: #64748B; cursor: pointer; }
+  .chip.active { background: #0F172A; color: #fff; border-color: #0F172A; }
+
+  .item { padding: 12px 0; border-bottom: 1px solid #F1F5F9; }
+  .item:last-child { border-bottom: none; }
+  .item-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .item-amt { font-size: 15px; font-weight: 600; }
+  .item-date { font-size: 11px; color: #94A3B8; }
+  .item-concept { font-size: 13.5px; color: #1E293B; margin-top: 2px; }
+  .item-meta { font-size: 11.5px; color: #94A3B8; margin-top: 3px; }
+  .item-actions { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+  .badge { font-size: 10.5px; padding: 2px 8px; border-radius: 99px; }
+  .badge-warn { background: #FEF3C7; color: #92400E; }
+  .badge-ok { background: #DCFCE7; color: #166534; }
+  .del-btn { margin-left: auto; font-size: 11px; color: #94A3B8; background: none; border: none; cursor: pointer; }
+
+  .hist-scroll { max-height: 420px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .empty { text-align: center; padding: 20px 0; color: #94A3B8; font-size: 13px; }
+
+  .summary-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #F1F5F9; font-size: 13.5px; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-cat { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #64748B; margin: 12px 0 6px; }
+  .summary-cat:first-child { margin-top: 0; }
+  .pct { color: #94A3B8; font-size: 11px; margin-left: 5px; }
+
+  .export-btn {
+    width: 100%; padding: 15px; background: #fff; border: 1.5px solid #CBD5E1;
+    border-radius: 10px; font-size: 14px; font-weight: 600; color: #0F172A; cursor: pointer;
+  }
+  .footer-count { text-align: center; font-size: 11px; color: #94A3B8; padding: 12px 0 4px; }
+
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Mis gastos</h1>
+    <p class="sub">Registro rápido en la calle — D'Santos, TCH, Personal.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Este mes</div>
+      <div class="stat-value" id="stat-month">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pendientes</div>
+      <div class="stat-value" id="stat-pending">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Nuevo gasto</h2>
+
+    <label class="field-label">Monto (MXN)</label>
+    <input type="number" inputmode="decimal" step="0.01" placeholder="0.00" id="in-amount">
+    <div class="dup-warn" id="dup-warn" style="display:none;"></div>
+
+    <label class="field-label">Método de pago</label>
+    <div class="seg" id="seg-method">
+      <button data-v="amex">AmEx</button>
+      <button data-v="santander-oro">S. Oro</button>
+      <button data-v="santander-unique">S. Unique</button>
+      <button data-v="bbva-fiscal">BBVA Fiscal</button>
+      <button data-v="debito">Débito</button>
+    </div>
+
+    <label class="field-label">Área</label>
+    <div class="seg" id="seg-area">
+      <button data-v="dsantos">D'Santos</button>
+      <button data-v="tch">TCH</button>
+      <button data-v="personal">Personal</button>
+    </div>
+
+    <label class="field-label">Registrado por</label>
+    <div class="seg" id="seg-user">
+      <button data-v="luis">Luis</button>
+      <button data-v="melissa">Melissa</button>
+    </div>
+
+    <label class="field-label">Concepto</label>
+    <input type="text" id="in-concept" placeholder="Ej: Pata Salada, comida familia">
+
+    <label class="field-label">¿Requiere factura?</label>
+    <div class="seg" id="seg-invoice">
+      <button data-v="yes">Sí, pedir</button>
+      <button data-v="no">No requiere</button>
+    </div>
+
+    <label class="field-label">Foto del ticket (opcional)</label>
+    <label class="photo-btn" for="in-photo"><span id="photo-btn-text">Adjuntar o tomar foto</span></label>
+    <input type="file" accept="image/*" id="in-photo">
+    <div id="photo-preview"></div>
+
+    <button class="save-btn" id="btn-save" disabled>Guardar gasto</button>
+
+    <div class="wa-banner" id="wa-banner">
+      <p>Guardado. ¿Avisarle a Melissa que falta factura?</p>
+      <button class="mini-btn wa" id="btn-wa">Enviar WhatsApp</button>
+      <button class="mini-btn" id="btn-wa-skip" style="margin-left:6px;">Ahora no</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Facturas pendientes</h2>
+    <div id="pending-list"><div class="empty">Sin pendientes</div></div>
+  </div>
+
+  <div class="card">
+    <div class="filters-row">
+      <h2 style="margin:0;">Historial</h2>
+      <select id="month-filter"><option value="all">Todos los meses</option></select>
+    </div>
+    <div class="chip-row" id="area-filters">
+      <button class="chip active" data-f="all">Todos</button>
+      <button class="chip" data-f="dsantos">D'Santos</button>
+      <button class="chip" data-f="tch">TCH</button>
+      <button class="chip" data-f="personal">Personal</button>
+    </div>
+    <div class="hist-scroll"><div id="recent-list"><div class="empty">Sin gastos aún</div></div></div>
+    <div class="footer-count" id="hist-count"></div>
+  </div>
+
+  <div class="card">
+    <h2>Resumen del mes</h2>
+    <div id="summary-content"><div class="empty">Registra tu primer gasto</div></div>
+  </div>
+
+  <button class="export-btn" id="btn-export">Compartir / exportar todo</button>
+  <div class="footer-count" id="total-count"></div>
+</div>
+
+<script>
+var STORAGE_KEY = 'gastos_v1';
+var DUP_DAYS = 7;
+var PHOTO_LIFE_DAYS = 60;
+
+var METHOD_LABEL = { 'amex':'AmEx Platinum', 'santander-oro':'Santander Fiesta Oro', 'santander-unique':'Santander Unique', 'bbva-fiscal':'BBVA Fiscal', 'debito':'Débito Personal' };
+var AREA_LABEL = { 'dsantos':"D'Santos", 'tch':'TCH', 'personal':'Personal' };
+var USER_LABEL = { 'luis':'Luis', 'melissa':'Melissa' };
+
+var state = { method:null, area:null, registeredBy:null, invoice:null, photo:null };
+var expenses = [];
+var areaFilter = 'all';
+var monthFilter = 'all';
+var lastSaved = null;
+
+function loadData() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    expenses = raw ? JSON.parse(raw) : [];
+  } catch(e) { expenses = []; }
+  cleanOldPhotos();
+  render();
+}
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses)); }
+  catch(e) {
+    expenses.forEach(function(x){ delete x.photo; });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses)); } catch(e2){}
+    alert('Memoria llena, se borraron las fotos guardadas.');
+  }
+}
+function cleanOldPhotos() {
+  var cutoff = Date.now() - PHOTO_LIFE_DAYS*24*60*60*1000;
+  var changed = false;
+  expenses.forEach(function(e){ if (e.photo && new Date(e.date).getTime() < cutoff) { delete e.photo; changed = true; } });
+  if (changed) saveData();
+}
+
+function bindSeg(id, key) {
+  var seg = document.getElementById(id);
+  seg.querySelectorAll('button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      seg.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      state[key] = btn.getAttribute('data-v');
+      checkReady();
+    });
+  });
+}
+bindSeg('seg-method', 'method');
+bindSeg('seg-area', 'area');
+bindSeg('seg-user', 'registeredBy');
+bindSeg('seg-invoice', 'invoice');
+
+document.getElementById('in-amount').addEventListener('input', function(){ checkDup(); checkReady(); });
+document.getElementById('in-concept').addEventListener('input', function(){ checkDup(); checkReady(); });
+
+function checkDup() {
+  var amt = parseFloat(document.getElementById('in-amount').value);
+  var c = document.getElementById('in-concept').value.trim().toLowerCase();
+  var warnEl = document.getElementById('dup-warn');
+  if (!amt || c.length < 3) { warnEl.style.display = 'none'; return; }
+  var cutoff = Date.now() - DUP_DAYS*24*60*60*1000;
+  var found = expenses.find(function(e) {
+    if (new Date(e.date).getTime() < cutoff) return false;
+    if (Math.abs(e.amount - amt) > 0.5) return false;
+    var ec = e.concept.toLowerCase();
+    return ec.indexOf(c) !== -1 || c.indexOf(ec) !== -1;
+  });
+  if (found) {
+    warnEl.style.display = 'block';
+    warnEl.textContent = 'Posible duplicado: ya tienes $' + found.amount.toFixed(2) + ' "' + found.concept + '" (' + formatDate(new Date(found.date)) + ')';
+  } else {
+    warnEl.style.display = 'none';
+  }
+}
+
+document.getElementById('in-photo').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var img = new Image();
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    var maxDim = 800, w = img.width, h = img.height;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) { h = h*maxDim/w; w = maxDim; } else { w = w*maxDim/h; h = maxDim; }
+    }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    state.photo = canvas.toDataURL('image/jpeg', 0.55);
+    document.getElementById('photo-preview').innerHTML = '<img src="'+state.photo+'" class="photo-preview">';
+    document.getElementById('photo-btn-text').textContent = 'Cambiar foto';
+  };
+  img.src = URL.createObjectURL(file);
+});
+
+function checkReady() {
+  var amount = parseFloat(document.getElementById('in-amount').value);
+  var concept = document.getElementById('in-concept').value.trim();
+  var ready = amount > 0 && concept.length > 0 && state.method && state.area && state.registeredBy && state.invoice;
+  document.getElementById('btn-save').disabled = !ready;
+}
+
+document.getElementById('btn-save').addEventListener('click', function() {
+  var amount = parseFloat(document.getElementById('in-amount').value);
+  var concept = document.getElementById('in-concept').value.trim();
+  var exp = {
+    id: 'e_' + Date.now(), date: new Date().toISOString(),
+    amount: amount, concept: concept, method: state.method, area: state.area,
+    registeredBy: state.registeredBy, invoice: state.invoice, invoiceDone: false, photo: state.photo
+  };
+  expenses.unshift(exp);
+  saveData();
+  lastSaved = exp;
+  resetForm();
+  render();
+  var btn = document.getElementById('btn-save');
+  btn.textContent = 'Guardado ✓';
+  btn.classList.add('done');
+  setTimeout(function(){ btn.textContent='Guardar gasto'; btn.classList.remove('done'); }, 1500);
+  if (exp.invoice === 'yes') document.getElementById('wa-banner').classList.add('show');
+});
+
+function resetForm() {
+  document.getElementById('in-amount').value = '';
+  document.getElementById('in-concept').value = '';
+  document.getElementById('in-photo').value = '';
+  document.getElementById('photo-preview').innerHTML = '';
+  document.getElementById('photo-btn-text').textContent = 'Adjuntar o tomar foto';
+  document.getElementById('dup-warn').style.display = 'none';
+  document.querySelectorAll('.seg button').forEach(function(b){ b.classList.remove('active'); });
+  state = { method:null, area:null, registeredBy:null, invoice:null, photo:null };
+  checkReady();
+}
+
+document.getElementById('btn-wa').addEventListener('click', function() {
+  if (lastSaved) sendWhatsApp(lastSaved);
+  document.getElementById('wa-banner').classList.remove('show');
+});
+document.getElementById('btn-wa-skip').addEventListener('click', function() {
+  document.getElementById('wa-banner').classList.remove('show');
+});
+function sendWhatsApp(exp) {
+  var d = new Date(exp.date);
+  var msg = 'Hola Meli, pedir factura:\n\n' + exp.concept + '\nMonto: $' + exp.amount.toFixed(2) +
+    '\nFecha: ' + d.toLocaleDateString('es-MX') + '\nMétodo: ' + METHOD_LABEL[exp.method] + '\nÁrea: ' + AREA_LABEL[exp.area];
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+document.querySelectorAll('#area-filters .chip').forEach(function(b) {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('#area-filters .chip').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    areaFilter = b.getAttribute('data-f');
+    renderRecent();
+  });
+});
+document.getElementById('month-filter').addEventListener('change', function(e) {
+  monthFilter = e.target.value;
+  renderRecent();
+});
+
+function monthKey(iso) { var d = new Date(iso); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthLabel(key) { var p = key.split('-'); return new Date(p[0], p[1]-1, 1).toLocaleDateString('es-MX',{month:'long',year:'numeric'}); }
+
+function render() { renderStats(); renderRecent(); renderPending(); renderSummary(); renderMonthOptions(); renderFooterCounts(); }
+
+function renderMonthOptions() {
+  var sel = document.getElementById('month-filter');
+  var keys = Array.from(new Set(expenses.map(function(e){ return monthKey(e.date); }))).sort().reverse();
+  var current = sel.value;
+  sel.innerHTML = '<option value="all">Todos los meses</option>' + keys.map(function(k){
+    return '<option value="'+k+'">'+monthLabel(k).charAt(0).toUpperCase()+monthLabel(k).slice(1)+'</option>';
+  }).join('');
+  if (keys.indexOf(current) !== -1) sel.value = current;
+}
+
+function renderStats() {
+  var now = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  var total = 0, pending = 0;
+  expenses.forEach(function(e) {
+    if (new Date(e.date).getTime() >= start) total += e.amount;
+    if (e.invoice === 'yes' && !e.invoiceDone) pending++;
+  });
+  document.getElementById('stat-month').textContent = '$' + Math.round(total).toLocaleString('es-MX');
+  document.getElementById('stat-pending').textContent = pending;
+}
+
+function renderRecent() {
+  var list = document.getElementById('recent-list');
+  var filtered = expenses.filter(function(e) {
+    if (areaFilter !== 'all' && e.area !== areaFilter) return false;
+    if (monthFilter !== 'all' && monthKey(e.date) !== monthFilter) return false;
+    return true;
+  });
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty">Sin gastos aquí</div>'; document.getElementById('hist-count').textContent=''; return; }
+  list.innerHTML = filtered.map(function(e) {
+    var badge = '';
+    if (e.invoice === 'yes' && !e.invoiceDone) badge = '<span class="badge badge-warn">Falta factura</span>';
+    else if (e.invoice === 'yes') badge = '<span class="badge badge-ok">Facturada</span>';
+    return '<div class="item">' +
+      '<div class="item-row"><div class="item-amt">$'+e.amount.toLocaleString('es-MX',{minimumFractionDigits:2})+'</div><div class="item-date">'+formatDate(new Date(e.date))+'</div></div>' +
+      '<div class="item-concept">'+escapeHtml(e.concept)+'</div>' +
+      '<div class="item-meta">'+METHOD_LABEL[e.method]+' · '+AREA_LABEL[e.area]+' · reg. '+(USER_LABEL[e.registeredBy]||'?')+'</div>' +
+      '<div class="item-actions">'+badge+'<button class="del-btn" onclick="deleteExpense(\''+e.id+'\')">Borrar</button></div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('hist-count').textContent = filtered.length + (filtered.length===1?' gasto':' gastos');
+}
+
+function renderPending() {
+  var pending = expenses.filter(function(e){ return e.invoice==='yes' && !e.invoiceDone; });
+  var el = document.getElementById('pending-list');
+  if (pending.length === 0) { el.innerHTML = '<div class="empty">Sin pendientes</div>'; return; }
+  el.innerHTML = pending.map(function(e) {
+    return '<div class="item">' +
+      '<div class="item-row"><div class="item-amt">$'+e.amount.toLocaleString('es-MX',{minimumFractionDigits:2})+'</div><div class="item-date">'+formatDate(new Date(e.date))+'</div></div>' +
+      '<div class="item-concept">'+escapeHtml(e.concept)+'</div>' +
+      '<div class="item-meta">'+AREA_LABEL[e.area]+'</div>' +
+      '<div class="item-actions"><button class="mini-btn" onclick="waFor(\''+e.id+'\')">WhatsApp</button><button class="mini-btn" style="background:#DCFCE7;border-color:#BBF7D0;" onclick="markDone(\''+e.id+'\')">Hecha</button></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderSummary() {
+  var now = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  var monthly = expenses.filter(function(e){ return new Date(e.date).getTime() >= start; });
+  var el = document.getElementById('summary-content');
+  if (monthly.length === 0) { el.innerHTML = '<div class="empty">Registra tu primer gasto</div>'; return; }
+  var total = 0, byArea = {}, byMethod = {};
+  monthly.forEach(function(e) { total += e.amount; byArea[e.area]=(byArea[e.area]||0)+e.amount; byMethod[e.method]=(byMethod[e.method]||0)+e.amount; });
+  var html = '<div class="summary-cat">Por área</div>';
+  Object.entries(byArea).sort(function(a,b){return b[1]-a[1];}).forEach(function(entry) {
+    var pct = Math.round(entry[1]/total*100);
+    html += '<div class="summary-row"><span>'+AREA_LABEL[entry[0]]+'</span><span>$'+Math.round(entry[1]).toLocaleString('es-MX')+'<span class="pct">'+pct+'%</span></span></div>';
+  });
+  html += '<div class="summary-cat">Por método</div>';
+  Object.entries(byMethod).sort(function(a,b){return b[1]-a[1];}).forEach(function(entry) {
+    var pct = Math.round(entry[1]/total*100);
+    html += '<div class="summary-row"><span>'+METHOD_LABEL[entry[0]]+'</span><span>$'+Math.round(entry[1]).toLocaleString('es-MX')+'<span class="pct">'+pct+'%</span></span></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderFooterCounts() {
+  document.getElementById('total-count').textContent = expenses.length + (expenses.length===1?' gasto registrado en total':' gastos registrados en total');
+}
+
+function formatDate(d) {
+  var now = new Date();
+  var diff = Math.floor((now-d)/86400000);
+  if (diff === 0) return 'Hoy ' + d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  if (diff === 1) return 'Ayer';
+  if (diff < 7) return 'Hace '+diff+'d';
+  return d.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
+}
+function escapeHtml(s) { return String(s).replace(/[<>&"']/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+window.deleteExpense = function(id) {
+  if (!confirm('¿Borrar este gasto?')) return;
+  expenses = expenses.filter(function(e){ return e.id !== id; });
+  saveData(); render();
+};
+window.markDone = function(id) {
+  var e = expenses.find(function(x){ return x.id === id; });
+  if (e) { e.invoiceDone = true; saveData(); render(); }
+};
+window.waFor = function(id) {
+  var e = expenses.find(function(x){ return x.id === id; });
+  if (e) sendWhatsApp(e);
+};
+
+document.getElementById('btn-export').addEventListener('click', function() {
+  if (expenses.length === 0) { alert('Aún no hay gastos que exportar'); return; }
+  var now = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  var monthly = expenses.filter(function(e){ return new Date(e.date).getTime() >= start; });
+  var total = monthly.reduce(function(s,e){ return s+e.amount; }, 0);
+  var pending = expenses.filter(function(e){ return e.invoice==='yes' && !e.invoiceDone; });
+  var byArea = {};
+  monthly.forEach(function(e){ byArea[e.area]=(byArea[e.area]||0)+e.amount; });
+
+  var msg = 'Gastos registrados hasta ' + now.toLocaleDateString('es-MX') + '.\n\n';
+  msg += 'RESUMEN MES ACTUAL:\nTotal: $' + Math.round(total).toLocaleString('es-MX') + '\nMovimientos: ' + monthly.length + '\nFacturas pendientes: ' + pending.length + '\n\n';
+  msg += 'POR ÁREA:\n';
+  Object.entries(byArea).sort(function(a,b){return b[1]-a[1];}).forEach(function(entry){ msg += '- '+AREA_LABEL[entry[0]]+': $'+Math.round(entry[1]).toLocaleString('es-MX')+'\n'; });
+  msg += '\nDETALLE (últimos 30):\n';
+  expenses.slice(0,30).forEach(function(e) {
+    var d = new Date(e.date);
+    var inv = e.invoice==='yes' ? (e.invoiceDone?'[F ok]':'[F pend]') : '';
+    msg += d.toLocaleDateString('es-MX')+' | $'+e.amount.toFixed(2)+' | '+METHOD_LABEL[e.method]+' | '+AREA_LABEL[e.area]+' | reg:'+(USER_LABEL[e.registeredBy]||'?')+' | '+e.concept+' '+inv+'\n';
+  });
+
+  if (navigator.share) {
+    navigator.share({ title: 'Mis gastos', text: msg }).catch(function(){});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(msg).then(function(){ alert('Copiado al portapapeles. Pégalo donde quieras (Claude, Notas, WhatsApp).'); });
+  } else {
+    alert(msg);
+  }
+});
+
+loadData();
+</script>
+</body>
+</html>
