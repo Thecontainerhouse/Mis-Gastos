@@ -90,6 +90,8 @@
   .item-date { font-size: 11px; color: #94A3B8; }
   .item-concept { font-size: 13.5px; color: #1E293B; margin-top: 2px; }
   .item-meta { font-size: 11.5px; color: #94A3B8; margin-top: 3px; }
+  .thumb { width: 28px; height: 28px; object-fit: cover; border-radius: 5px; border: 1px solid #E2E8F0; vertical-align: middle; margin-left: 4px; cursor: pointer; }
+  .photo-full { width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px; border: 1px solid #E2E8F0; margin-top: 8px; cursor: pointer; }
   .item-actions { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
   .badge { font-size: 10.5px; padding: 2px 8px; border-radius: 99px; }
   .badge-warn { background: #FEF3C7; color: #92400E; }
@@ -146,6 +148,7 @@
       <button data-v="santander-unique">S. Unique</button>
       <button data-v="bbva-fiscal">BBVA Fiscal</button>
       <button data-v="debito">Débito</button>
+      <button data-v="efectivo">Efectivo</button>
     </div>
 
     <label class="field-label">Área</label>
@@ -218,7 +221,7 @@ var STORAGE_KEY = 'gastos_v1';
 var DUP_DAYS = 7;
 var PHOTO_LIFE_DAYS = 60;
 
-var METHOD_LABEL = { 'amex':'AmEx Platinum', 'santander-oro':'Santander Fiesta Oro', 'santander-unique':'Santander Unique', 'bbva-fiscal':'BBVA Fiscal', 'debito':'Débito Personal' };
+var METHOD_LABEL = { 'amex':'AmEx Platinum', 'santander-oro':'Santander Fiesta Oro', 'santander-unique':'Santander Unique', 'bbva-fiscal':'BBVA Fiscal', 'debito':'Débito Personal', 'efectivo':'Efectivo' };
 var AREA_LABEL = { 'dsantos':"D'Santos", 'tch':'TCH', 'personal':'Personal' };
 var USER_LABEL = { 'luis':'Luis', 'melissa':'Melissa' };
 
@@ -414,10 +417,13 @@ function renderRecent() {
     var badge = '';
     if (e.invoice === 'yes' && !e.invoiceDone) badge = '<span class="badge badge-warn">Falta factura</span>';
     else if (e.invoice === 'yes') badge = '<span class="badge badge-ok">Facturada</span>';
+    var photoThumb = e.photo ? '<img src="'+e.photo+'" class="thumb" onclick="togglePhoto(\''+e.id+'\')">' : '';
+    var photoFull = e.photo ? '<img src="'+e.photo+'" class="photo-full" id="full-'+e.id+'" style="display:none;" onclick="togglePhoto(\''+e.id+'\')">' : '';
     return '<div class="item">' +
       '<div class="item-row"><div class="item-amt">$'+e.amount.toLocaleString('es-MX',{minimumFractionDigits:2})+'</div><div class="item-date">'+formatDate(new Date(e.date))+'</div></div>' +
-      '<div class="item-concept">'+escapeHtml(e.concept)+'</div>' +
+      '<div class="item-concept">'+escapeHtml(e.concept)+(photoThumb ? ' '+photoThumb : '')+'</div>' +
       '<div class="item-meta">'+METHOD_LABEL[e.method]+' · '+AREA_LABEL[e.area]+' · reg. '+(USER_LABEL[e.registeredBy]||'?')+'</div>' +
+      photoFull +
       '<div class="item-actions">'+badge+'<button class="del-btn" onclick="deleteExpense(\''+e.id+'\')">Borrar</button></div>' +
     '</div>';
   }).join('');
@@ -472,6 +478,12 @@ function formatDate(d) {
   return d.toLocaleDateString('es-MX',{day:'numeric',month:'short'});
 }
 function escapeHtml(s) { return String(s).replace(/[<>&"']/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+window.togglePhoto = function(id) {
+  var el = document.getElementById('full-' + id);
+  if (!el) return;
+  el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+};
 
 window.deleteExpense = function(id) {
   if (!confirm('¿Borrar este gasto?')) return;
