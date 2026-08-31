@@ -513,8 +513,8 @@ document.getElementById('btn-export').addEventListener('click', function() {
   msg += 'RESUMEN MES ACTUAL:\nTotal: $' + Math.round(total).toLocaleString('es-MX') + '\nMovimientos: ' + monthly.length + '\nFacturas pendientes: ' + pending.length + '\n\n';
   msg += 'POR ÁREA:\n';
   Object.entries(byArea).sort(function(a,b){return b[1]-a[1];}).forEach(function(entry){ msg += '- '+AREA_LABEL[entry[0]]+': $'+Math.round(entry[1]).toLocaleString('es-MX')+'\n'; });
-  msg += '\nDETALLE (últimos 30):\n';
-  expenses.slice(0,30).forEach(function(e) {
+  msg += '\nDETALLE COMPLETO DEL MES:\n';
+ monthly.forEach(function(e) {
     var d = new Date(e.date);
     var inv = e.invoice==='yes' ? (e.invoiceDone?'[F ok]':'[F pend]') : '';
     msg += d.toLocaleDateString('es-MX')+' | $'+e.amount.toFixed(2)+' | '+METHOD_LABEL[e.method]+' | '+AREA_LABEL[e.area]+' | reg:'+(USER_LABEL[e.registeredBy]||'?')+' | '+e.concept+' '+inv+'\n';
